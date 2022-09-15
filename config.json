@@ -1,0 +1,42 @@
+{
+  "alphabet": "01",
+  "rules": {
+    "0": {
+      "1": {
+        "direction": "Right",
+        "value": "1",
+        "state": 2
+      },
+      "2": {
+        "direction": "Right",
+        "value": "1",
+        "state": 2
+      }
+    },
+    "1": {
+      "1": {
+        "direction": "Right",
+        "value": "0",
+        "state": 2
+      },
+      "2": {
+        "direction": "Right",
+        "value": "0",
+        "state": 2
+      }
+    },
+    "\\": {
+      "1": {
+        "direction": "Right",
+        "value": "\\",
+        "state": 1
+      },
+      "2": {
+        "direction": "Right",
+        "value": "\\",
+        "state": 0
+      }
+    }
+  },
+  "memory": "\\\\110010\\\\\\\\\\\\\\\\"
+}
