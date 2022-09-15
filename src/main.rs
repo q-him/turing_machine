@@ -1,74 +1,43 @@
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::fs;
+use serde::{Deserialize, Serialize};
+use crate::turing_machine::{Rule, TuringMachine};
 
-#[derive(Copy, Clone, Debug)]
-enum Direction {
-    Left,
-    Stay,
-    Right,
+mod errors;
+mod turing_machine;
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct Config {
+    pub alphabet: String,
+    pub rules: HashMap<char, HashMap<usize, Rule>>,
+    pub memory: String
 }
 
-#[derive(Copy, Clone, Debug)]
-struct Rule {
-    direction: Direction,
-    value: char,
-    state: usize,
+fn load_config<P: AsRef<std::path::Path>>(path: P) -> Result<Config, Box<dyn Error>> {
+    let unparsed_json = fs::read_to_string(path)?;
+    let config = serde_json::from_str(&unparsed_json)?;
+    Ok(config)
 }
 
-#[derive(Clone, Debug)]
-struct TuringMachine {
-    alphabet: HashSet<char>,
-    rules: HashMap<char, Vec<Rule>>,
-    memory: Vec<char>,
-    head: usize,
-    state: usize,
-}
+fn main() -> Result<(), Box<dyn Error>> {
+    let config = load_config("./config.json")?;
 
-impl TuringMachine {
-    pub fn new(memory_size: usize, alphabet: HashSet<char>, rules: HashMap<char, Vec<Rule>>) -> Self {
-        if alphabet.contains(&'\\') {
-            panic!("alphabet should not contain '\\' because '\\' is a special character")
-        }
+    let memory = config.memory.chars().collect();
+    let alphabet = config.alphabet.chars().collect();
 
-        if memory_size == 0 {
-            panic!("memory_size cannot be empty")
-        }
+    let mut tm = TuringMachine::new(memory, alphabet, config.rules);
+    println!("{}", tm);
 
-        TuringMachine {
-            memory: vec!['\\'; memory_size],
-            head: 0,
-            state: 1,
-            alphabet,
-            rules,
+    loop {
+        tm.execute_step().unwrap();
+        println!("{}", tm);
+
+        if tm.is_finished() {
+            println!("Turing machine has finished working");
+            break;
         }
     }
 
-    fn move_left(&mut self) {
-        if self.head == 0 {
-            self.head = self.memory.len() - 1
-        } else {
-            self.head -= 1
-        }
-    }
-
-    fn move_right(&mut self) {
-        if self.head == self.memory.len() - 1 {
-            self.head = 0
-        } else {
-            self.head += 1
-        }
-    }
-
-    fn execute(&mut self) -> Result<(), String> {
-        let rule = self.rules
-            .get(&self.memory[self.head])
-            .map(|rs| rs[self.state]);
-
-        if rule.is_none() {
-            return format!("No rule for ");
-        }
-    }
-}
-
-fn main() {
-    println!("Hello, world!");
+    Ok(())
 }
