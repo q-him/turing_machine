@@ -1,7 +1,10 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
+
 use serde::{Deserialize, Serialize};
+
 use crate::errors::{NoRuleError, TuringMachineError};
+use crate::IncorrectRuleError;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum Direction {
@@ -15,6 +18,33 @@ pub struct Rule {
     pub direction: Direction,
     pub value: char,
     pub state: usize,
+}
+
+impl Rule {
+    pub fn from_str(s: &str) -> Result<Rule, IncorrectRuleError> {
+        if s.len() < 3 {
+            return Err(IncorrectRuleError::new(s.to_string()));
+        }
+
+        let mut chars = s.chars();
+        let value = chars.next().unwrap();
+        let direction = match chars.next().unwrap() {
+            '<' => Direction::Left,
+            '.' => Direction::Stay,
+            '>' => Direction::Right,
+            _ => return Err(IncorrectRuleError::new(s.to_string())),
+        };
+
+        if let Ok(state) = chars.as_str().parse() {
+            Ok(Rule {
+                direction,
+                value,
+                state,
+            })
+        } else {
+            Err(IncorrectRuleError::new(s.to_string()))
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -31,6 +61,7 @@ impl TuringMachine {
         memory: Vec<char>,
         alphabet: HashSet<char>,
         rules: HashMap<char, HashMap<usize, Rule>>,
+        head_position: usize
     ) -> Self {
         if memory.is_empty() {
             panic!("memory_size cannot be empty")
@@ -56,7 +87,7 @@ impl TuringMachine {
 
         TuringMachine {
             memory,
-            head: 0,
+            head: head_position,
             state: 1,
             cycle: 0,
             rules,

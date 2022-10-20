@@ -32,3 +32,24 @@ impl Error for NoRuleError {}
 pub enum TuringMachineError {
     NoRule(NoRuleError)
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IncorrectRuleError {
+    pub rule: String,
+}
+
+impl IncorrectRuleError {
+    pub fn new(rule: String) -> Self {
+        Self {
+            rule
+        }
+    }
+}
+
+impl Display for IncorrectRuleError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Cannot parse rule `{}`", self.rule)
+    }
+}
+
+impl Error for IncorrectRuleError {}
